@@ -1,53 +1,47 @@
-Spatial_Research_Suite/
-│
-├── app.py                     # Main application
-├── requirements.txt
-├── config.py
-├── auth.py                    # Login & user management
-├── database.py                # SQLite/PostgreSQL
-│
-├── assets/
-│   ├── logo.png
-│   ├── css/
-│   ├── icons/
-│   └── images/
-│
-├── pages/
-│   ├── Dashboard.py
-│   ├── Project_Manager.py
-│   ├── Data_Upload.py
-│   ├── Map_Viewer.py
-│   ├── Boundary_Extractor.py
-│   ├── Sentinel2_Explorer.py
-│   ├── NDVI.py
-│   ├── NDWI.py
-│   ├── NDBI.py
-│   ├── SAVI.py
-│   ├── EVI.py
-│   ├── LST.py
-│   ├── LULC_RF.py
-│   ├── Change_Detection.py
-│   ├── Accuracy_Assessment.py
-│   ├── Environmental_Analytics.py
-│   ├── Cartography.py
-│   ├── Reports.py
-│   ├── Export.py
-│   └── Settings.py
-│
-├── core/
-│   ├── gee.py
-│   ├── sentinel.py
-│   ├── random_forest.py
-│   ├── change_detection.py
-│   ├── accuracy.py
-│   ├── export.py
-│   ├── report_generator.py
-│   ├── map_utils.py
-│   └── utils.py
-│
-├── uploads/
-├── outputs/
-├── reports/
-├── projects/
-├── temp/
-└── models/
+streamlit==1.37.1
+streamlit-folium==0.22.0
+streamlit-option-menu==0.3.13
+streamlit-authenticator==0.2.3
+
+pandas==2.2.2
+numpy==1.26.4
+scipy==1.11.4
+
+plotly==5.22.0
+altair==5.3.0
+matplotlib==3.8.4
+
+folium==0.16.0
+
+geopandas==0.14.4
+shapely==2.0.4
+pyproj==3.6.1
+fiona==1.9.6
+pyogrio==0.7.2
+
+rasterio==1.3.10
+rioxarray==0.15.0
+
+earthengine-api==0.1.399
+geemap==0.32.1
+
+scikit-learn==1.4.2
+joblib==1.3.2
+
+opencv-python-headless==4.9.0.80
+scikit-image==0.22.0
+
+sqlalchemy==2.0.29
+psycopg2-binary==2.9.9
+
+reportlab==4.1.0
+openpyxl==3.1.2
+python-docx==1.1.0
+
+simplekml==1.3.6
+
+requests==2.31.0
+httpx==0.27.0
+
+python-dotenv==1.0.1
+gdown==5.2.0
