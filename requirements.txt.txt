@@ -1,0 +1,53 @@
+Spatial_Research_Suite/
+│
+├── app.py                     # Main application
+├── requirements.txt
+├── config.py
+├── auth.py                    # Login & user management
+├── database.py                # SQLite/PostgreSQL
+│
+├── assets/
+│   ├── logo.png
+│   ├── css/
+│   ├── icons/
+│   └── images/
+│
+├── pages/
+│   ├── Dashboard.py
+│   ├── Project_Manager.py
+│   ├── Data_Upload.py
+│   ├── Map_Viewer.py
+│   ├── Boundary_Extractor.py
+│   ├── Sentinel2_Explorer.py
+│   ├── NDVI.py
+│   ├── NDWI.py
+│   ├── NDBI.py
+│   ├── SAVI.py
+│   ├── EVI.py
+│   ├── LST.py
+│   ├── LULC_RF.py
+│   ├── Change_Detection.py
+│   ├── Accuracy_Assessment.py
+│   ├── Environmental_Analytics.py
+│   ├── Cartography.py
+│   ├── Reports.py
+│   ├── Export.py
+│   └── Settings.py
+│
+├── core/
+│   ├── gee.py
+│   ├── sentinel.py
+│   ├── random_forest.py
+│   ├── change_detection.py
+│   ├── accuracy.py
+│   ├── export.py
+│   ├── report_generator.py
+│   ├── map_utils.py
+│   └── utils.py
+│
+├── uploads/
+├── outputs/
+├── reports/
+├── projects/
+├── temp/
+└── models/
