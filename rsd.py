@@ -14,16 +14,23 @@ import seaborn as sns
 st.set_page_config(page_title="Spatial Research Suite", layout="wide")
 
 # =========================
-# SESSION (simple multi-user)
+# EARTH ENGINE INIT SAFE
+# =========================
+try:
+    ee.Initialize()
+except:
+    st.warning("Earth Engine not initialized. Run ee.Authenticate() locally first.")
+
+# Study region (West Africa example)
+region = ee.Geometry.Rectangle([-10, 10, 10, 25])
+
+# =========================
+# SESSION LOGIN (SIMPLE)
 # =========================
 if "user" not in st.session_state:
     st.session_state.user = None
 
-# =========================
-# LOGIN SYSTEM (simple)
-# =========================
 st.sidebar.title("🔐 Login")
-
 username = st.sidebar.text_input("Username")
 password = st.sidebar.text_input("Password", type="password")
 
@@ -58,21 +65,11 @@ menu = st.sidebar.radio(
 )
 
 # =========================
-# INIT EARTH ENGINE
-# =========================
-try:
-    ee.Initialize()
-except:
-    st.warning("Earth Engine not initialized (use ee.Authenticate())")
-
-region = ee.Geometry.Rectangle([-10, 10, 10, 25])
-
-# =========================
 # DASHBOARD
 # =========================
 if menu == "Dashboard":
 
-    st.title("🌍 Spatial Research Suite")
+    st.title("🌍 Spatial Research Suite Dashboard")
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("NDVI Avg", "0.63")
@@ -89,7 +86,7 @@ if menu == "Dashboard":
     st.plotly_chart(fig, use_container_width=True)
 
 # =========================
-# NDVI MODULE (SENTINEL-2)
+# NDVI MODULE
 # =========================
 elif menu == "NDVI Analysis":
 
@@ -108,22 +105,32 @@ elif menu == "NDVI Analysis":
 
         ndvi = image.normalizedDifference(["B8", "B4"]).rename("NDVI")
 
-        st.success("NDVI computed successfully")
+        ndvi_vis = {
+            "min": -1,
+            "max": 1,
+            "palette": ["blue", "white", "green"]
+        }
 
-        st.write("NDVI Layer ready")
+        map_ndvi = folium.Map(location=[13.5, -8], zoom_start=5)
 
-        m = folium.Map(location=[13.5, -8], zoom_start=5)
+        folium.raster_layers.TileLayer(
+            tiles=ndvi.getMapId(ndvi_vis)["tile_fetcher"].url_format,
+            attr="NDVI",
+            name="NDVI"
+        ).add_to(map_ndvi)
 
-        folium.TileLayer("OpenStreetMap").add_to(m)
+        folium.LayerControl().add_to(map_ndvi)
 
-        st_folium(m, width=1200, height=600)
+        st_folium(map_ndvi, width=1200, height=600)
+
+        st.success("NDVI generated successfully")
 
 # =========================
-# LULC MULTI-YEAR
+# LULC CLASSIFICATION (RF)
 # =========================
 elif menu == "LULC (Multi-Year)":
 
-    st.title("🛰️ Multi-Year LULC")
+    st.title("🛰️ LULC Classification (Random Forest)")
 
     year = st.selectbox("Select Year", [2018, 2019, 2020, 2021, 2022, 2023])
 
@@ -132,21 +139,53 @@ elif menu == "LULC (Multi-Year)":
         image = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED") \
             .filterBounds(region) \
             .filterDate(f"{year}-01-01", f"{year}-12-31") \
+            .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 20)) \
             .median()
 
         bands = ["B2", "B3", "B4", "B8", "B11", "B12"]
         image = image.select(bands)
 
-        st.success(f"LULC model generated for {year}")
+        # ⚠️ Demo training data (replace later with real samples)
+        training_points = image.sample(
+            region,
+            scale=10,
+            numPixels=2000
+        )
 
-        st.info("Classes: Water / Vegetation / Urban / Bare soil")
+        classifier = ee.Classifier.smileRandomForest(50).train(
+            features=training_points,
+            classProperty="B8",
+            inputProperties=bands
+        )
+
+        classified = image.classify(classifier)
+
+        vis = {
+            "min": 0,
+            "max": 3,
+            "palette": ["blue", "green", "red", "yellow"]
+        }
+
+        map_lulc = folium.Map(location=[13.5, -8], zoom_start=5)
+
+        folium.raster_layers.TileLayer(
+            tiles=classified.getMapId(vis)["tile_fetcher"].url_format,
+            attr="LULC",
+            name="LULC"
+        ).add_to(map_lulc)
+
+        folium.LayerControl().add_to(map_lulc)
+
+        st_folium(map_lulc, width=1200, height=600)
+
+        st.success(f"LULC completed for {year}")
 
 # =========================
 # CHANGE DETECTION
 # =========================
 elif menu == "Change Detection":
 
-    st.title("🔄 LULC Change Detection")
+    st.title("🔄 Change Detection")
 
     y1 = st.selectbox("Year 1", [2018, 2019, 2020, 2021, 2022])
     y2 = st.selectbox("Year 2", [2019, 2020, 2021, 2022, 2023])
@@ -161,11 +200,25 @@ elif menu == "Change Detection":
             .filterDate(f"{y2}-01-01", f"{y2}-12-31") \
             .median()
 
-        change = img2.subtract(img1)
+        change = img2.subtract(img1).normalizedDifference(["B8", "B4"])
+
+        vis = {
+            "min": -1,
+            "max": 1,
+            "palette": ["red", "white", "green"]
+        }
+
+        map_change = folium.Map(location=[13.5, -8], zoom_start=5)
+
+        folium.raster_layers.TileLayer(
+            tiles=change.getMapId(vis)["tile_fetcher"].url_format,
+            attr="Change Detection",
+            name="Change"
+        ).add_to(map_change)
+
+        st_folium(map_change, width=1200, height=600)
 
         st.success("Change detection completed")
-
-        st.write("Change map generated (pixel-level)")
 
 # =========================
 # ACCURACY ASSESSMENT
@@ -178,8 +231,6 @@ elif menu == "Accuracy Assessment":
     y_pred = np.random.randint(0, 4, 200)
 
     cm = pd.crosstab(y_true, y_pred)
-
-    st.write("Confusion Matrix")
 
     fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, cmap="Blues", ax=ax)
@@ -224,7 +275,7 @@ elif menu == "Analytics":
     st.plotly_chart(fig, use_container_width=True)
 
 # =========================
-# EXPORT SYSTEM
+# EXPORT
 # =========================
 elif menu == "Export":
 
@@ -233,5 +284,4 @@ elif menu == "Export":
     option = st.selectbox("Export Type", ["GeoTIFF", "PDF Report", "CSV"])
 
     if st.button("Export"):
-
-        st.success(f"{option} exported successfully")
+        st.success(f"{option} export triggered (backend to implement)")
